@@ -59,9 +59,7 @@ impl TennisGame for TennisGame1 {
                 "Win for player2".to_owned()
             }
             (a, b) if a == b => match a {
-                0 => return "Love-All".to_owned(),
-                1 => return "Fifteen-All".to_owned(),
-                2 => return "Thirty-All".to_owned(),
+                0..=2 => return format!("{}-All", score_name(a)),
                 3 => return "Deuce".to_owned(),
                 _ => unreachable!(),
             },
