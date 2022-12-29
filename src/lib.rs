@@ -63,25 +63,18 @@ impl TennisGame for TennisGame1 {
                 "Win for player2".to_owned()
             }
             _ => {
-                let mut temp_score: u8;
-                let mut score = String::new();
-                for i in 1..3 {
-                    if i == 1 {
-                        temp_score = self.score1;
-                    } else {
-                        score.push_str("-");
-                        temp_score = self.score2;
-                    }
-                    match temp_score {
-                        0 => score.push_str("Love"),
-                        1 => score.push_str("Fifteen"),
-                        2 => score.push_str("Thirty"),
-                        3 => score.push_str("Forty"),
-                        _ => {}
-                    }
-                }
-                return score;
+                return format!("{}-{}", score_name(self.score1), score_name(self.score2));
             }
         }
+    }
+}
+
+fn score_name(score: u8) -> &'static str {
+    match score {
+        0 => "Love",
+        1 => "Fifteen",
+        2 => "Thirty",
+        3 => "Forty",
+        _ => unreachable!(),
     }
 }
