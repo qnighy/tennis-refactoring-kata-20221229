@@ -45,15 +45,11 @@ impl TennisGame for TennisGame1 {
     }
     fn get_score(&self) -> String {
         match (self.score1, self.score2) {
-            (a, b) if a == b => match a {
-                0 => return "Love-All".to_owned(),
-                1 => return "Fifteen-All".to_owned(),
-                2 => return "Thirty-All".to_owned(),
-                _ => return "Deuce".to_owned(),
-            },
             (a, b) if a >= 4 || b >= 4 => {
                 let minus_result = self.score1 as i8 - self.score2 as i8;
-                if minus_result == 1 {
+                if minus_result == 0 {
+                    return "Deuce".to_owned();
+                } else if minus_result == 1 {
                     return "Advantage player1".to_owned();
                 } else if minus_result == -1i8 {
                     return "Advantage player2".to_owned();
@@ -62,6 +58,13 @@ impl TennisGame for TennisGame1 {
                 }
                 "Win for player2".to_owned()
             }
+            (a, b) if a == b => match a {
+                0 => return "Love-All".to_owned(),
+                1 => return "Fifteen-All".to_owned(),
+                2 => return "Thirty-All".to_owned(),
+                3 => return "Deuce".to_owned(),
+                _ => unreachable!(),
+            },
             _ => {
                 return format!("{}-{}", score_name(self.score1), score_name(self.score2));
             }
