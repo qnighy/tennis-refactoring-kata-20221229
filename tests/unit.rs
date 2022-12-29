@@ -57,6 +57,9 @@ mod tests {
 
     #[test]
     fn test_game1() {
+        if !cfg!(feature = "orig_test") {
+            return;
+        }
         let mut game = TennisGame1::new();
         run(&mut game);
     }
