@@ -11,30 +11,80 @@ pub enum Player {
     Two,
 }
 
-#[derive(Default)]
+#[derive(Debug, Clone)]
 pub struct TennisGame1 {
-    score1: u8,
-    score2: u8,
+    state: TennisGame1State,
+}
+#[derive(Debug, Clone)]
+enum TennisGame1State {
+    InRange { score1: u8, score2: u8 },
+    Deuce { advantage: i8 },
+    Fin { winner: Player },
 }
 impl TennisGame1 {
     pub fn new() -> Self {
-        TennisGame1::default()
+        TennisGame1 {
+            state: TennisGame1State::InRange {
+                score1: 0,
+                score2: 0,
+            },
+        }
+    }
+    fn check(&self) {
+        match self.state {
+            TennisGame1State::InRange { score1, score2 } => {
+                debug_assert!(score1 < 4);
+                debug_assert!(score2 < 4);
+                debug_assert!(score1 + score2 < 6);
+            }
+            TennisGame1State::Deuce { advantage: diff } => {
+                debug_assert!(-1 <= diff && diff <= 1);
+            }
+            TennisGame1State::Fin { .. } => {}
+        }
     }
 }
 impl TennisGame for TennisGame1 {
     fn clear(&mut self) {
-        self.score1 = 0;
-        self.score2 = 0;
+        *self = Self::new();
     }
     fn won_point2(&mut self, player: Player) {
-        match player {
-            Player::One => {
-                self.score1 += 1;
+        match &mut self.state {
+            TennisGame1State::InRange { score1, score2 } => match player {
+                Player::One => {
+                    *score1 += 1;
+                }
+                Player::Two => {
+                    *score2 += 1;
+                }
+            },
+            TennisGame1State::Deuce { advantage } => {
+                *advantage += match player {
+                    Player::One => 1,
+                    Player::Two => -1,
+                }
             }
-            Player::Two => {
-                self.score2 += 1;
+            TennisGame1State::Fin { .. } => panic!("Cannot continue the game"),
+        }
+        if let TennisGame1State::InRange { score1, score2 } = &mut self.state {
+            if *score1 >= 4 || *score2 >= 4 || *score1 + *score2 >= 6 {
+                self.state = TennisGame1State::Deuce {
+                    advantage: *score1 as i8 - *score2 as i8,
+                }
             }
         }
+        if let TennisGame1State::Deuce { advantage } = &mut self.state {
+            if *advantage >= 2 {
+                self.state = TennisGame1State::Fin {
+                    winner: Player::One,
+                }
+            } else if *advantage <= -2 {
+                self.state = TennisGame1State::Fin {
+                    winner: Player::Two,
+                }
+            }
+        }
+        self.check();
     }
     fn won_point(&mut self, player_name: &str) {
         self.won_point2(match player_name {
@@ -44,27 +94,28 @@ impl TennisGame for TennisGame1 {
         })
     }
     fn get_score(&self) -> String {
-        match (self.score1, self.score2) {
-            (a, b) if a >= 4 || b >= 4 => {
-                let minus_result = self.score1 as i8 - self.score2 as i8;
-                if minus_result == 0 {
-                    return "Deuce".to_owned();
-                } else if minus_result == 1 {
-                    return "Advantage player1".to_owned();
-                } else if minus_result == -1i8 {
-                    return "Advantage player2".to_owned();
-                } else if minus_result >= 2 {
-                    return "Win for player1".to_owned();
+        match self.state {
+            TennisGame1State::InRange { score1, score2 } => {
+                if score1 == score2 {
+                    format!("{}-All", score_name(score1))
+                } else {
+                    format!("{}-{}", score_name(score1), score_name(score2))
                 }
-                "Win for player2".to_owned()
             }
-            (a, b) if a == b => match a {
-                0..=2 => return format!("{}-All", score_name(a)),
-                3 => return "Deuce".to_owned(),
+            TennisGame1State::Deuce { advantage } => match advantage {
+                1 => "Advantage player1".to_owned(),
+                0 => "Deuce".to_owned(),
+                -1 => "Advantage player2".to_owned(),
                 _ => unreachable!(),
             },
-            _ => {
-                return format!("{}-{}", score_name(self.score1), score_name(self.score2));
+            TennisGame1State::Fin { winner } => {
+                format!(
+                    "Win for {}",
+                    match winner {
+                        Player::One => "player1",
+                        Player::Two => "player2",
+                    }
+                )
             }
         }
     }
