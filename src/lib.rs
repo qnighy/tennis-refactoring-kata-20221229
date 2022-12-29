@@ -1,7 +1,14 @@
 pub trait TennisGame {
     fn clear(&mut self);
+    fn won_point2(&mut self, player: Player);
     fn won_point(&mut self, player_name: &str);
     fn get_score(&self) -> String;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Player {
+    One,
+    Two,
 }
 
 #[derive(Default)]
@@ -19,12 +26,22 @@ impl TennisGame for TennisGame1 {
         self.score1 = 0;
         self.score2 = 0;
     }
-    fn won_point(&mut self, player_name: &str) {
-        if player_name == "player1" {
-            self.score1 += 1;
-        } else {
-            self.score2 += 1;
+    fn won_point2(&mut self, player: Player) {
+        match player {
+            Player::One => {
+                self.score1 += 1;
+            }
+            Player::Two => {
+                self.score2 += 1;
+            }
         }
+    }
+    fn won_point(&mut self, player_name: &str) {
+        self.won_point2(match player_name {
+            "player1" => Player::One,
+            "player2" => Player::Two,
+            _ => panic!("Invalid player_name: {:?}", player_name),
+        })
     }
     fn get_score(&self) -> String {
         match (self.score1, self.score2) {
