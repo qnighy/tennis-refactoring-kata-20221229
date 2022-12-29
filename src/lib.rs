@@ -8,8 +8,6 @@ pub trait TennisGame {
 pub struct TennisGame1 {
     score1: u8,
     score2: u8,
-    _player1_name: String,
-    _player2_name: String,
 }
 impl TennisGame1 {
     pub fn new() -> Self {
